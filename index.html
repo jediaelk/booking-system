@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chauffeur Booking — Estate Viewings</title>
+  <style>
+    /* ── Reset & Base ────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-muted: #f9fafb;
+      --bg-card: #ffffff;
+      --border: #e5e7eb;
+      --border-focus: #000000;
+      --text: #09090b;
+      --text-muted: #6b7280;
+      --text-inverse: #ffffff;
+      --accent: #000000;
+      --accent-hover: #1a1a1a;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --warning: #ca8a04;
+      --warning-bg: #fefce8;
+      --pending-bg: #f3f4f6;
+      --destructive: #dc2626;
+      --destructive-bg: #fef2f2;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.1);
+      --transition: 150ms cubic-bezier(.4,0,.2,1);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-muted);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 50;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .sidebar-brand svg { flex-shrink: 0; }
+
+    .sidebar-brand h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .sidebar-brand span {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover { background: var(--bg-muted); color: var(--text); }
+    .nav-item.active { background: var(--bg-muted); color: var(--text); font-weight: 600; }
+
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: var(--radius);
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text-inverse);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .user-info { font-size: 13px; }
+    .user-info strong { display: block; font-weight: 600; }
+    .user-info span { color: var(--text-muted); font-size: 12px; }
+
+    .main {
+      flex: 1;
+      margin-left: 260px;
+      padding: 32px;
+      max-width: 1200px;
+    }
+
+    /* ── Page Header ─────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .page-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    /* ── Buttons ─────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 1px solid transparent;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--text-inverse);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-outline {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-outline:hover { background: var(--bg-muted); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 6px 8px;
+    }
+    .btn-ghost:hover { background: var(--bg-muted); color: var(--text); }
+
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { opacity: 0.9; }
+
+    .btn-destructive { background: var(--destructive); color: #fff; border-color: var(--destructive); }
+    .btn-destructive:hover { opacity: 0.9; }
+
+    /* ── Cards ────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .card-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .card-body { padding: 24px; }
+
+    /* ── Tabs ─────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--transition);
+    }
+
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Form ─────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .form-label .required { color: var(--destructive); }
+
+    .form-input, .form-select, .form-textarea {
+      padding: 9px 12px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(0,0,0,.08);
+    }
+
+    .form-input::placeholder, .form-textarea::placeholder {
+      color: #9ca3af;
+    }
+
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .form-hint { font-size: 12px; color: var(--text-muted); }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+      grid-column: 1 / -1;
+    }
+
+    /* ── Badges ───────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 9999px;
+      line-height: 1.4;
+    }
+
+    .badge-pending { background: var(--pending-bg); color: var(--text-muted); }
+    .badge-approved { background: var(--success-bg); color: var(--success); }
+    .badge-rejected { background: var(--destructive-bg); color: var(--destructive); }
+    .badge-review { background: var(--warning-bg); color: var(--warning); }
+
+    /* ── Approval Pipeline ───────────────────────────── */
+    .pipeline { display: flex; flex-direction: column; gap: 0; }
+
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      position: relative;
+    }
+
+    .pipeline-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 48px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .pipeline-step.completed:not(:last-child)::after {
+      background: var(--success);
+    }
+
+    .pipeline-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: var(--bg);
+      z-index: 1;
+    }
+
+    .pipeline-step.completed .pipeline-icon {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .pipeline-step.current .pipeline-icon {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .pipeline-step.rejected .pipeline-icon {
+      border-color: var(--destructive);
+      background: var(--destructive);
+      color: #fff;
+    }
+
+    .pipeline-content h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .pipeline-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .pipeline-content .pipeline-time {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    /* ── Table ────────────────────────────────────────── */
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr { transition: background var(--transition); }
+    tbody tr:hover { background: var(--bg-muted); }
+
+    .table-actions { display: flex; gap: 4px; }
+
+    /* ── Calendar ─────────────────────────────────────── */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .calendar-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .calendar-nav { display: flex; gap: 4px; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .calendar-day-label {
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .calendar-cell {
+      min-height: 100px;
+      padding: 8px;
+      background: var(--bg);
+      vertical-align: top;
+    }
+
+    .calendar-cell.other-month { background: var(--bg-muted); }
+    .calendar-cell.today { background: #fafafa; }
+
+    .calendar-date {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    .calendar-cell.today .calendar-date {
+      background: var(--accent);
+      color: var(--text-inverse);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calendar-event {
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      margin-bottom: 3px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .calendar-event:hover { opacity: 0.8; }
+
+    .calendar-event.confirmed {
+      background: var(--accent);
+      color: var(--text-inverse);
+    }
+
+    .calendar-event.pending {
+      background: var(--pending-bg);
+      color: var(--text-muted);
+      border: 1px dashed var(--border);
+    }
+
+    /* ── Stats ────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 4px;
+      letter-spacing: -0.025em;
+    }
+
+    .stat-change {
+      font-size: 12px;
+      margin-top: 4px;
+      color: var(--success);
+    }
+
+    /* ── Modal / Dialog ──────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      transform: translateY(10px) scale(.98);
+      transition: transform 200ms ease;
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+
+    .modal-body { padding: 24px; }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* ── Toasts ───────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--accent);
+      color: var(--text-inverse);
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 300ms ease, fadeOut 300ms ease 2.5s forwards;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+
+    /* ── Utility ──────────────────────────────────────── */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-4 { margin-top: 16px; }
+    .text-sm { font-size: 13px; }
+    .text-muted { color: var(--text-muted); }
+    .font-medium { font-weight: 500; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Slot Grid ───────────────────────────────────── */
+    .slot-grid {
+      display: grid;
+      grid-template-columns: 100px repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    .slot-grid-header {
+      background: var(--bg-muted);
+      padding: 10px 8px;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .slot-grid-header.corner { background: var(--bg-muted); }
+
+    .slot-row-label {
+      background: var(--bg);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      border-right: 1px solid var(--border);
+    }
+
+    .slot-row-label strong { font-size: 13px; font-weight: 600; }
+    .slot-row-label span { font-size: 11px; color: var(--text-muted); }
+
+    .slot-cell {
+      background: var(--bg);
+      padding: 6px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .slot-chip {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot-chip:hover { opacity: .8; }
+
+    .slot-chip.booked {
+      background: var(--accent);
+      color: var(--text-inverse);
+    }
+
+    .slot-chip.available {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px dashed #bbf7d0;
+    }
+
+    .slot-chip.maintenance {
+      background: var(--destructive-bg);
+      color: var(--destructive);
+    }
+
+    .slot-chip.hold {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    /* ── Fleet Cards ─────────────────────────────────── */
+    .fleet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .fleet-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      gap: 16px;
+      transition: box-shadow var(--transition);
+    }
+
+    .fleet-card:hover { box-shadow: var(--shadow); }
+
+    .fleet-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius);
+      background: var(--bg-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .fleet-details { flex: 1; min-width: 0; }
+    .fleet-details h4 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .fleet-details .fleet-plate { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 10px; }
+
+    .fleet-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .fleet-meta-item { display: flex; flex-direction: column; gap: 1px; }
+    .fleet-meta-item .meta-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+    .fleet-meta-item .meta-value { font-size: 13px; font-weight: 600; }
+
+    .fleet-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Utilization Bar ─────────────────────────────── */
+    .util-bar-wrap { flex: 1; margin-right: 12px; }
+    .util-bar-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .util-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .util-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 600ms ease; }
+
+    /* ── Driver Cards ────────────────────────────────── */
+    .driver-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .driver-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow var(--transition);
+    }
+
+    .driver-card:hover { box-shadow: var(--shadow); }
+
+    .driver-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text-inverse);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 auto 10px;
+    }
+
+    .driver-card h4 { font-size: 14px; font-weight: 600; }
+    .driver-card .driver-role { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+
+    .driver-stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .driver-stat { text-align: center; }
+    .driver-stat .ds-value { font-size: 18px; font-weight: 700; display: block; }
+    .driver-stat .ds-label { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Slot Legend ──────────────────────────────────── */
+    .slot-legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-dot.booked { background: var(--accent); }
+    .legend-dot.available { background: #bbf7d0; border: 1px dashed var(--success); }
+    .legend-dot.maintenance { background: #fecaca; }
+    .legend-dot.hold { background: #fef08a; }
+
+    /* ── Section Separator ────────────────────────────── */
+    .section-gap { margin-top: 32px; }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .fleet-grid { grid-template-columns: 1fr; }
+      .driver-grid { grid-template-columns: 1fr 1fr; }
+      .slot-grid { font-size: 11px; grid-template-columns: 80px repeat(7, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ─── Sidebar ─────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#000"/><path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <h1>Estate Motors</h1>
+        <span>Chauffeur Bookings</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-tab="new-booking" onclick="switchTab('new-booking')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        New Booking
+      </button>
+      <button class="nav-item" data-tab="approvals" onclick="switchTab('approvals')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Approvals
+      </button>
+      <button class="nav-item" data-tab="fleet" onclick="switchTab('fleet')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Fleet &amp; Slots
+      </button>
+      <button class="nav-item" data-tab="calendar" onclick="switchTab('calendar')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendar
+      </button>
+      <button class="nav-item" data-tab="history" onclick="switchTab('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">JD</div>
+        <div class="user-info">
+          <strong>James Donovan</strong>
+          <span>Office Manager</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── Main Content ────────────────────────────── -->
+  <main class="main">
+
+    <!-- ═══ Dashboard ═══════════════════════════════ -->
+    <section id="tab-dashboard" class="tab-panel active">
+      <div class="page-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Overview of all chauffeur bookings and approvals</p>
+        </div>
+        <button class="btn btn-primary" onclick="switchTab('new-booking')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Booking
+        </button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Bookings</div>
+          <div class="stat-value">24</div>
+          <div class="stat-change">+3 this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Approval</div>
+          <div class="stat-value">5</div>
+          <div class="stat-change" style="color:var(--warning)">Needs attention</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Confirmed</div>
+          <div class="stat-value">16</div>
+          <div class="stat-change">+2 today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">41</div>
+          <div class="stat-change">This month</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>Recent Bookings</h3>
+            <p>Latest booking requests across all properties</p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="switchTab('approvals')">View all</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Property</th>
+                <th>Date &amp; Time</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Sarah Mitchell</strong><br><span class="text-sm text-muted">sarah@email.com</span></td>
+                <td>42 Kensington Gardens, W8</td>
+                <td>17 Feb 2026, 10:00 AM</td>
+                <td><span class="badge badge-review">In Review</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openDetail('pending')">View</button></td>
+              </tr>
+              <tr>
+                <td><strong>Michael Chen</strong><br><span class="text-sm text-muted">m.chen@email.com</span></td>
+                <td>8 Belgrave Square, SW1</td>
+                <td>18 Feb 2026, 2:00 PM</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openDetail('new')">View</button></td>
+              </tr>
+              <tr>
+                <td><strong>Emma Roberts</strong><br><span class="text-sm text-muted">emma.r@email.com</span></td>
+                <td>15 Chester Terrace, NW1</td>
+                <td>19 Feb 2026, 11:30 AM</td>
+                <td><span class="badge badge-approved">Approved</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openDetail('approved')">View</button></td>
+              </tr>
+              <tr>
+                <td><strong>David Williams</strong><br><span class="text-sm text-muted">d.williams@email.com</span></td>
+                <td>3 The Boltons, SW10</td>
+                <td>14 Feb 2026, 3:00 PM</td>
+                <td><span class="badge badge-approved">Approved</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openDetail('approved')">View</button></td>
+              </tr>
+              <tr>
+                <td><strong>Olivia Thompson</strong><br><span class="text-sm text-muted">olivia.t@email.com</span></td>
+                <td>27 Eaton Place, SW1</td>
+                <td>15 Feb 2026, 9:00 AM</td>
+                <td><span class="badge badge-rejected">Declined</span></td>
+                <td><button class="btn btn-ghost btn-sm" onclick="openDetail('rejected')">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ New Booking ═════════════════════════════ -->
+    <section id="tab-new-booking" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <h2>New Booking Request</h2>
+          <p>Submit a chauffeur request for a property viewing</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>Booking Details</h3>
+            <p>Fill in the details below to request a chauffeur for your client</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <form id="bookingForm" onsubmit="submitBooking(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Client Name <span class="required">*</span></label>
+                <input type="text" class="form-input" placeholder="e.g. Sarah Mitchell" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client Email <span class="required">*</span></label>
+                <input type="email" class="form-input" placeholder="e.g. sarah@email.com" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Client Phone</label>
+                <input type="tel" class="form-input" placeholder="e.g. +44 7700 900000" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Number of Passengers</label>
+                <select class="form-select">
+                  <option>1</option>
+                  <option>2</option>
+                  <option selected>3</option>
+                  <option>4</option>
+                  <option>5+</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Property Address <span class="required">*</span></label>
+                <input type="text" class="form-input" placeholder="e.g. 42 Kensington Gardens, London W8 4PE" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pickup Location <span class="required">*</span></label>
+                <input type="text" class="form-input" placeholder="e.g. The Dorchester, Park Lane" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Return Trip</label>
+                <select class="form-select">
+                  <option selected>Yes — return to pickup location</option>
+                  <option>No — one way only</option>
+                  <option>Yes — different drop-off</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Viewing Date <span class="required">*</span></label>
+                <input type="date" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pickup Time <span class="required">*</span></label>
+                <input type="time" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vehicle Preference</label>
+                <select class="form-select">
+                  <option selected>Mercedes S-Class</option>
+                  <option>Range Rover Autobiography</option>
+                  <option>BMW 7 Series</option>
+                  <option>Rolls-Royce Ghost</option>
+                  <option>No preference</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select class="form-select">
+                  <option>Standard</option>
+                  <option selected>High — VIP Client</option>
+                  <option>Urgent — Same Day</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Special Requests</label>
+                <textarea class="form-textarea" placeholder="e.g. Client prefers sparkling water, needs child seat, specific route preference..."></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Requesting Agent</label>
+                <input type="text" class="form-input" value="James Donovan" />
+                <span class="form-hint">This booking will be routed for approval based on priority level.</span>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline" onclick="switchTab('dashboard')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Booking Request</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Approvals ═══════════════════════════════ -->
+    <section id="tab-approvals" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <h2>Approval Queue</h2>
+          <p>Review and manage pending chauffeur booking requests</p>
+        </div>
+      </div>
+
+      <div class="tabs" id="approval-tabs">
+        <button class="tab active" onclick="switchApprovalTab(this, 'pending-list')">Pending (3)</button>
+        <button class="tab" onclick="switchApprovalTab(this, 'in-review-list')">In Review (2)</button>
+        <button class="tab" onclick="switchApprovalTab(this, 'processed-list')">Processed (19)</button>
+      </div>
+
+      <!-- Pending -->
+      <div id="pending-list" class="approval-panel" style="display:block;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+
+          <div class="card" id="approval-card-1">
+            <div class="card-body" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;">
+              <div style="flex:1;">
+                <div class="flex items-center gap-3" style="margin-bottom:8px;">
+                  <strong style="font-size:15px;">Michael Chen</strong>
+                  <span class="badge badge-pending">Pending</span>
+                </div>
+                <div class="text-sm text-muted" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;">
+                  <span class="font-medium" style="color:var(--text)">Property:</span> <span>8 Belgrave Square, SW1</span>
+                  <span class="font-medium" style="color:var(--text)">Date:</span> <span>18 Feb 2026, 2:00 PM</span>
+                  <span class="font-medium" style="color:var(--text)">Pickup:</span> <span>Claridge's Hotel, Brook Street</span>
+                  <span class="font-medium" style="color:var(--text)">Vehicle:</span> <span>Rolls-Royce Ghost</span>
+                  <span class="font-medium" style="color:var(--text)">Priority:</span> <span>High — VIP Client</span>
+                </div>
+              </div>
+              <div class="flex gap-2" style="flex-shrink:0;">
+                <button class="btn btn-success btn-sm" onclick="approveBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Approve
+                </button>
+                <button class="btn btn-destructive btn-sm" onclick="rejectBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Decline
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;">
+              <div style="flex:1;">
+                <div class="flex items-center gap-3" style="margin-bottom:8px;">
+                  <strong style="font-size:15px;">Aisha Patel</strong>
+                  <span class="badge badge-pending">Pending</span>
+                </div>
+                <div class="text-sm text-muted" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;">
+                  <span class="font-medium" style="color:var(--text)">Property:</span> <span>11 Cadogan Place, SW1</span>
+                  <span class="font-medium" style="color:var(--text)">Date:</span> <span>20 Feb 2026, 10:00 AM</span>
+                  <span class="font-medium" style="color:var(--text)">Pickup:</span> <span>The Langham, Portland Place</span>
+                  <span class="font-medium" style="color:var(--text)">Vehicle:</span> <span>Mercedes S-Class</span>
+                  <span class="font-medium" style="color:var(--text)">Priority:</span> <span>Standard</span>
+                </div>
+              </div>
+              <div class="flex gap-2" style="flex-shrink:0;">
+                <button class="btn btn-success btn-sm" onclick="approveBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Approve
+                </button>
+                <button class="btn btn-destructive btn-sm" onclick="rejectBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Decline
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;">
+              <div style="flex:1;">
+                <div class="flex items-center gap-3" style="margin-bottom:8px;">
+                  <strong style="font-size:15px;">George Hamilton</strong>
+                  <span class="badge badge-pending">Pending</span>
+                </div>
+                <div class="text-sm text-muted" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;">
+                  <span class="font-medium" style="color:var(--text)">Property:</span> <span>5 Holland Park Villas, W11</span>
+                  <span class="font-medium" style="color:var(--text)">Date:</span> <span>21 Feb 2026, 1:00 PM</span>
+                  <span class="font-medium" style="color:var(--text)">Pickup:</span> <span>Brown's Hotel, Albemarle Street</span>
+                  <span class="font-medium" style="color:var(--text)">Vehicle:</span> <span>Range Rover Autobiography</span>
+                  <span class="font-medium" style="color:var(--text)">Priority:</span> <span>High — VIP Client</span>
+                </div>
+              </div>
+              <div class="flex gap-2" style="flex-shrink:0;">
+                <button class="btn btn-success btn-sm" onclick="approveBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Approve
+                </button>
+                <button class="btn btn-destructive btn-sm" onclick="rejectBooking(this)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Decline
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- In Review -->
+      <div id="in-review-list" class="approval-panel" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card">
+            <div class="card-body" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;">
+              <div style="flex:1;">
+                <div class="flex items-center gap-3" style="margin-bottom:8px;">
+                  <strong style="font-size:15px;">Sarah Mitchell</strong>
+                  <span class="badge badge-review">In Review</span>
+                </div>
+                <div class="text-sm text-muted" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;">
+                  <span class="font-medium" style="color:var(--text)">Property:</span> <span>42 Kensington Gardens, W8</span>
+                  <span class="font-medium" style="color:var(--text)">Date:</span> <span>17 Feb 2026, 10:00 AM</span>
+                  <span class="font-medium" style="color:var(--text)">Pickup:</span> <span>The Connaught, Carlos Place</span>
+                  <span class="font-medium" style="color:var(--text)">Vehicle:</span> <span>Mercedes S-Class</span>
+                  <span class="font-medium" style="color:var(--text)">Reviewer:</span> <span>Operations — Helen Marsh</span>
+                </div>
+
+                <!-- Approval Pipeline -->
+                <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                  <p class="text-sm font-medium" style="margin-bottom:12px;">Approval Progress</p>
+                  <div class="pipeline">
+                    <div class="pipeline-step completed">
+                      <div class="pipeline-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      </div>
+                      <div class="pipeline-content">
+                        <h4>Request Submitted</h4>
+                        <p>Submitted by James Donovan</p>
+                        <div class="pipeline-time">14 Feb 2026, 9:15 AM</div>
+                      </div>
+                    </div>
+                    <div class="pipeline-step completed">
+                      <div class="pipeline-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      </div>
+                      <div class="pipeline-content">
+                        <h4>Agent Approval</h4>
+                        <p>Approved by Senior Agent — Tom Blake</p>
+                        <div class="pipeline-time">14 Feb 2026, 10:02 AM</div>
+                      </div>
+                    </div>
+                    <div class="pipeline-step current">
+                      <div class="pipeline-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/></svg>
+                      </div>
+                      <div class="pipeline-content">
+                        <h4>Operations Review</h4>
+                        <p>Awaiting availability confirmation from Helen Marsh</p>
+                        <div class="pipeline-time">In progress...</div>
+                      </div>
+                    </div>
+                    <div class="pipeline-step">
+                      <div class="pipeline-icon"></div>
+                      <div class="pipeline-content">
+                        <h4>Confirmed &amp; Scheduled</h4>
+                        <p>Booking added to calendar &amp; driver assigned</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2" style="flex-shrink:0;">
+                <button class="btn btn-success btn-sm" onclick="approveBooking(this)">Approve</button>
+                <button class="btn btn-destructive btn-sm" onclick="rejectBooking(this)">Decline</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body" style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;">
+              <div style="flex:1;">
+                <div class="flex items-center gap-3" style="margin-bottom:8px;">
+                  <strong style="font-size:15px;">Li Wei</strong>
+                  <span class="badge badge-review">In Review</span>
+                </div>
+                <div class="text-sm text-muted" style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;">
+                  <span class="font-medium" style="color:var(--text)">Property:</span> <span>1 Hyde Park Street, W2</span>
+                  <span class="font-medium" style="color:var(--text)">Date:</span> <span>19 Feb 2026, 3:30 PM</span>
+                  <span class="font-medium" style="color:var(--text)">Pickup:</span> <span>Heathrow Terminal 5</span>
+                  <span class="font-medium" style="color:var(--text)">Vehicle:</span> <span>Rolls-Royce Ghost</span>
+                  <span class="font-medium" style="color:var(--text)">Reviewer:</span> <span>Operations — Helen Marsh</span>
+                </div>
+              </div>
+              <div class="flex gap-2" style="flex-shrink:0;">
+                <button class="btn btn-success btn-sm" onclick="approveBooking(this)">Approve</button>
+                <button class="btn btn-destructive btn-sm" onclick="rejectBooking(this)">Decline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processed -->
+      <div id="processed-list" class="approval-panel" style="display:none;">
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Property</th>
+                  <th>Date</th>
+                  <th>Decision</th>
+                  <th>Decided By</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Emma Roberts</strong></td>
+                  <td>15 Chester Terrace, NW1</td>
+                  <td>19 Feb 2026</td>
+                  <td><span class="badge badge-approved">Approved</span></td>
+                  <td>Helen Marsh</td>
+                </tr>
+                <tr>
+                  <td><strong>David Williams</strong></td>
+                  <td>3 The Boltons, SW10</td>
+                  <td>14 Feb 2026</td>
+                  <td><span class="badge badge-approved">Approved</span></td>
+                  <td>Helen Marsh</td>
+                </tr>
+                <tr>
+                  <td><strong>Olivia Thompson</strong></td>
+                  <td>27 Eaton Place, SW1</td>
+                  <td>15 Feb 2026</td>
+                  <td><span class="badge badge-rejected">Declined</span></td>
+                  <td>Tom Blake</td>
+                </tr>
+                <tr>
+                  <td><strong>Raj Kapoor</strong></td>
+                  <td>9 Avenue Road, NW8</td>
+                  <td>12 Feb 2026</td>
+                  <td><span class="badge badge-approved">Approved</span></td>
+                  <td>Helen Marsh</td>
+                </tr>
+                <tr>
+                  <td><strong>Anna Kowalski</strong></td>
+                  <td>14 Cheyne Walk, SW3</td>
+                  <td>10 Feb 2026</td>
+                  <td><span class="badge badge-approved">Approved</span></td>
+                  <td>Helen Marsh</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Fleet & Slots ═══════════════════════════ -->
+    <section id="tab-fleet" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <h2>Fleet &amp; Booking Slots</h2>
+          <p>Vehicle inventory, driver roster, and weekly availability grid</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-outline" onclick="changeSlotWeek(-1)">&larr; Prev Week</button>
+          <button class="btn btn-outline" onclick="changeSlotWeek(1)">Next Week &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Fleet Quick Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Vehicles</div>
+          <div class="stat-value">4</div>
+          <div class="stat-change">Fleet capacity</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Available Now</div>
+          <div class="stat-value">2</div>
+          <div class="stat-change">Ready to dispatch</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Booked This Week</div>
+          <div class="stat-value">9</div>
+          <div class="stat-change" style="color:var(--warning)">73% utilization</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Drivers</div>
+          <div class="stat-value">3</div>
+          <div class="stat-change">All on roster</div>
+        </div>
+      </div>
+
+      <!-- Weekly Slot Grid -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3 id="slot-week-label">Week of 16 – 22 Feb 2026</h3>
+            <p>Click a slot to book or manage availability</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="slot-legend">
+            <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+            <div class="legend-item"><div class="legend-dot available"></div> Available</div>
+            <div class="legend-item"><div class="legend-dot hold"></div> On Hold</div>
+            <div class="legend-item"><div class="legend-dot maintenance"></div> Maintenance</div>
+          </div>
+          <div class="slot-grid" id="slot-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Inventory -->
+      <div class="section-gap">
+        <h3 class="section-title">Vehicle Inventory</h3>
+        <p class="section-subtitle">Current fleet status, mileage, and service schedule</p>
+        <div class="fleet-grid">
+
+          <div class="fleet-card">
+            <div class="fleet-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="fleet-details">
+              <h4>Mercedes S-Class</h4>
+              <div class="fleet-plate">EM01 LDN · Black</div>
+              <div class="fleet-meta">
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Mileage</span>
+                  <span class="meta-value">24,310 mi</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Next Service</span>
+                  <span class="meta-value">28 Feb</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Assigned Driver</span>
+                  <span class="meta-value">Robert Hayes</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Status</span>
+                  <span class="meta-value"><span class="badge badge-approved">Active</span></span>
+                </div>
+              </div>
+              <div class="fleet-status-bar">
+                <div class="util-bar-wrap">
+                  <div class="util-bar-label"><span>Utilization</span><span>82%</span></div>
+                  <div class="util-bar"><div class="util-bar-fill" style="width:82%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fleet-card">
+            <div class="fleet-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="fleet-details">
+              <h4>Range Rover Autobiography</h4>
+              <div class="fleet-plate">EM02 LDN · Black</div>
+              <div class="fleet-meta">
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Mileage</span>
+                  <span class="meta-value">18,720 mi</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Next Service</span>
+                  <span class="meta-value">15 Mar</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Assigned Driver</span>
+                  <span class="meta-value">Mark Stevens</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Status</span>
+                  <span class="meta-value"><span class="badge badge-approved">Active</span></span>
+                </div>
+              </div>
+              <div class="fleet-status-bar">
+                <div class="util-bar-wrap">
+                  <div class="util-bar-label"><span>Utilization</span><span>65%</span></div>
+                  <div class="util-bar"><div class="util-bar-fill" style="width:65%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fleet-card">
+            <div class="fleet-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="fleet-details">
+              <h4>BMW 7 Series</h4>
+              <div class="fleet-plate">EM03 LDN · Grey</div>
+              <div class="fleet-meta">
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Mileage</span>
+                  <span class="meta-value">31,450 mi</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Next Service</span>
+                  <span class="meta-value">20 Feb</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Assigned Driver</span>
+                  <span class="meta-value">Mark Stevens</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Status</span>
+                  <span class="meta-value"><span class="badge badge-review">Service Due</span></span>
+                </div>
+              </div>
+              <div class="fleet-status-bar">
+                <div class="util-bar-wrap">
+                  <div class="util-bar-label"><span>Utilization</span><span>48%</span></div>
+                  <div class="util-bar"><div class="util-bar-fill" style="width:48%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fleet-card">
+            <div class="fleet-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="fleet-details">
+              <h4>Rolls-Royce Ghost</h4>
+              <div class="fleet-plate">EM04 LDN · Black</div>
+              <div class="fleet-meta">
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Mileage</span>
+                  <span class="meta-value">12,090 mi</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Next Service</span>
+                  <span class="meta-value">10 Apr</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Assigned Driver</span>
+                  <span class="meta-value">Robert Hayes</span>
+                </div>
+                <div class="fleet-meta-item">
+                  <span class="meta-label">Status</span>
+                  <span class="meta-value"><span class="badge badge-approved">Active</span></span>
+                </div>
+              </div>
+              <div class="fleet-status-bar">
+                <div class="util-bar-wrap">
+                  <div class="util-bar-label"><span>Utilization</span><span>91%</span></div>
+                  <div class="util-bar"><div class="util-bar-fill" style="width:91%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Driver Roster -->
+      <div class="section-gap">
+        <h3 class="section-title">Driver Roster</h3>
+        <p class="section-subtitle">Availability and performance this month</p>
+        <div class="driver-grid">
+
+          <div class="driver-card">
+            <div class="driver-avatar">RH</div>
+            <h4>Robert Hayes</h4>
+            <div class="driver-role">Senior Chauffeur &middot; <span class="badge badge-approved" style="font-size:11px;">On Duty</span></div>
+            <div class="driver-stats">
+              <div class="driver-stat">
+                <span class="ds-value">18</span>
+                <span class="ds-label">Trips</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">4.9</span>
+                <span class="ds-label">Rating</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">96%</span>
+                <span class="ds-label">On-time</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="driver-card">
+            <div class="driver-avatar">MS</div>
+            <h4>Mark Stevens</h4>
+            <div class="driver-role">Chauffeur &middot; <span class="badge badge-approved" style="font-size:11px;">On Duty</span></div>
+            <div class="driver-stats">
+              <div class="driver-stat">
+                <span class="ds-value">14</span>
+                <span class="ds-label">Trips</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">4.8</span>
+                <span class="ds-label">Rating</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">92%</span>
+                <span class="ds-label">On-time</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="driver-card">
+            <div class="driver-avatar">PK</div>
+            <h4>Paul Kennedy</h4>
+            <div class="driver-role">Relief Driver &middot; <span class="badge badge-pending" style="font-size:11px;">Off Duty</span></div>
+            <div class="driver-stats">
+              <div class="driver-stat">
+                <span class="ds-value">6</span>
+                <span class="ds-label">Trips</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">4.7</span>
+                <span class="ds-label">Rating</span>
+              </div>
+              <div class="driver-stat">
+                <span class="ds-value">100%</span>
+                <span class="ds-label">On-time</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Upcoming Maintenance -->
+      <div class="section-gap">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Upcoming Maintenance</h3>
+              <p>Scheduled services and MOT dates</p>
+            </div>
+            <button class="btn btn-outline btn-sm">+ Schedule</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Service Type</th>
+                  <th>Scheduled</th>
+                  <th>Garage</th>
+                  <th>Est. Downtime</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>BMW 7 Series</strong> <span class="text-sm text-muted">EM03</span></td>
+                  <td>Full Service + MOT</td>
+                  <td>20 Feb 2026</td>
+                  <td>Mercedes-Benz of Mayfair</td>
+                  <td>2 days</td>
+                  <td><span class="badge badge-review">Scheduled</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Mercedes S-Class</strong> <span class="text-sm text-muted">EM01</span></td>
+                  <td>Interim Service</td>
+                  <td>28 Feb 2026</td>
+                  <td>Mercedes-Benz of Mayfair</td>
+                  <td>1 day</td>
+                  <td><span class="badge badge-pending">Upcoming</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Range Rover</strong> <span class="text-sm text-muted">EM02</span></td>
+                  <td>Full Service</td>
+                  <td>15 Mar 2026</td>
+                  <td>Battersea Land Rover</td>
+                  <td>1 day</td>
+                  <td><span class="badge badge-pending">Upcoming</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Rolls-Royce Ghost</strong> <span class="text-sm text-muted">EM04</span></td>
+                  <td>Annual Service</td>
+                  <td>10 Apr 2026</td>
+                  <td>HR Owen, Berkeley Square</td>
+                  <td>3 days</td>
+                  <td><span class="badge badge-pending">Upcoming</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══ Calendar ════════════════════════════════ -->
+    <section id="tab-calendar" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <h2>Booking Calendar</h2>
+          <p>Confirmed bookings and scheduled viewings</p>
+        </div>
+        <button class="btn btn-primary" onclick="switchTab('new-booking')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Booking
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="calendar-header">
+            <div class="calendar-nav">
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">&larr; Prev</button>
+            </div>
+            <h3 id="calendar-month-label">February 2026</h3>
+            <div class="calendar-nav">
+              <button class="btn btn-outline btn-sm" onclick="changeMonth(1)">Next &rarr;</button>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calendar-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ History ═════════════════════════════════ -->
+    <section id="tab-history" class="tab-panel">
+      <div class="page-header">
+        <div>
+          <h2>Booking History</h2>
+          <p>Complete log of past chauffeur bookings</p>
+        </div>
+        <button class="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th>
+                <th>Client</th>
+                <th>Property</th>
+                <th>Date</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted">#CB-041</td>
+                <td><strong>David Williams</strong></td>
+                <td>3 The Boltons, SW10</td>
+                <td>14 Feb 2026</td>
+                <td>Mercedes S-Class</td>
+                <td>Robert Hayes</td>
+                <td><span class="badge badge-approved">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted">#CB-040</td>
+                <td><strong>Raj Kapoor</strong></td>
+                <td>9 Avenue Road, NW8</td>
+                <td>12 Feb 2026</td>
+                <td>BMW 7 Series</td>
+                <td>Mark Stevens</td>
+                <td><span class="badge badge-approved">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted">#CB-039</td>
+                <td><strong>Anna Kowalski</strong></td>
+                <td>14 Cheyne Walk, SW3</td>
+                <td>10 Feb 2026</td>
+                <td>Mercedes S-Class</td>
+                <td>Robert Hayes</td>
+                <td><span class="badge badge-approved">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted">#CB-038</td>
+                <td><strong>James Morton</strong></td>
+                <td>22 Mayfair Place, W1</td>
+                <td>8 Feb 2026</td>
+                <td>Range Rover</td>
+                <td>Mark Stevens</td>
+                <td><span class="badge badge-approved">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted">#CB-037</td>
+                <td><strong>Sophie Laurent</strong></td>
+                <td>6 Phillimore Gardens, W8</td>
+                <td>6 Feb 2026</td>
+                <td>Rolls-Royce Ghost</td>
+                <td>Robert Hayes</td>
+                <td><span class="badge badge-approved">Completed</span></td>
+              </tr>
+              <tr>
+                <td class="text-muted">#CB-036</td>
+                <td><strong>Yuki Tanaka</strong></td>
+                <td>33 Lowndes Square, SW1</td>
+                <td>4 Feb 2026</td>
+                <td>Mercedes S-Class</td>
+                <td>Mark Stevens</td>
+                <td><span class="badge badge-rejected">Cancelled</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ─── Detail Modal ──────────────────────────────── -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Booking Detail</h3>
+      <button class="btn btn-ghost" onclick="closeModal()" style="font-size:18px;">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Filled by JS -->
+    </div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- ─── Toast Container ───────────────────────────── -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+  /* ── Tab Switching ─────────────────────────────── */
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+
+    if (tabId === 'calendar') renderCalendar();
+  }
+
+  /* ── Approval sub-tabs ─────────────────────────── */
+  function switchApprovalTab(btn, panelId) {
+    document.querySelectorAll('#approval-tabs .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.approval-panel').forEach(p => p.style.display = 'none');
+    document.getElementById(panelId).style.display = 'block';
+  }
+
+  /* ── Approve / Reject ──────────────────────────── */
+  function approveBooking(btn) {
+    const card = btn.closest('.card');
+    const name = card.querySelector('strong').textContent;
+    card.style.transition = 'all 400ms ease';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(40px)';
+    setTimeout(() => {
+      card.style.display = 'none';
+      showToast(`Booking for ${name} approved — added to calendar`);
+    }, 400);
+  }
+
+  function rejectBooking(btn) {
+    const card = btn.closest('.card');
+    const name = card.querySelector('strong').textContent;
+    card.style.transition = 'all 400ms ease';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(-40px)';
+    setTimeout(() => {
+      card.style.display = 'none';
+      showToast(`Booking for ${name} declined`);
+    }, 400);
+  }
+
+  /* ── Form Submission ───────────────────────────── */
+  function submitBooking(e) {
+    e.preventDefault();
+    showToast('Booking request submitted for approval');
+    e.target.reset();
+    setTimeout(() => switchTab('approvals'), 1200);
+  }
+
+  /* ── Toast ─────────────────────────────────────── */
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>${msg}`;
+    document.getElementById('toasts').appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  /* ── Modal ─────────────────────────────────────── */
+  const modalOverlay = document.getElementById('detailModal');
+
+  function openDetail(type) {
+    const body = document.getElementById('modal-body');
+    const footer = document.getElementById('modal-footer');
+    const title = document.getElementById('modal-title');
+
+    if (type === 'approved') {
+      title.textContent = 'Approved Booking';
+      body.innerHTML = `
+        <div class="pipeline">
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Request Submitted</h4><p>James Donovan</p><div class="pipeline-time">12 Feb 2026, 2:30 PM</div></div>
+          </div>
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Agent Approval</h4><p>Tom Blake</p><div class="pipeline-time">12 Feb 2026, 3:15 PM</div></div>
+          </div>
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Operations Review</h4><p>Helen Marsh — Approved</p><div class="pipeline-time">13 Feb 2026, 9:00 AM</div></div>
+          </div>
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Confirmed &amp; Scheduled</h4><p>Driver: Robert Hayes · Mercedes S-Class</p><div class="pipeline-time">Added to calendar</div></div>
+          </div>
+        </div>`;
+      footer.innerHTML = `<button class="btn btn-outline" onclick="closeModal()">Close</button>`;
+    } else if (type === 'pending' || type === 'new') {
+      title.textContent = 'Booking — Pending Review';
+      body.innerHTML = `
+        <div class="pipeline">
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Request Submitted</h4><p>James Donovan</p><div class="pipeline-time">14 Feb 2026, 11:00 AM</div></div>
+          </div>
+          <div class="pipeline-step current">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="pipeline-content"><h4>Agent Approval</h4><p>Awaiting senior agent review</p><div class="pipeline-time">In progress...</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-icon"></div>
+            <div class="pipeline-content"><h4>Operations Review</h4><p>Pending</p></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-icon"></div>
+            <div class="pipeline-content"><h4>Confirmed &amp; Scheduled</h4><p>Pending</p></div>
+          </div>
+        </div>`;
+      footer.innerHTML = `
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        <button class="btn btn-success" onclick="closeModal(); showToast('Booking approved — added to calendar')">Approve</button>`;
+    } else if (type === 'rejected') {
+      title.textContent = 'Booking — Declined';
+      body.innerHTML = `
+        <div class="pipeline">
+          <div class="pipeline-step completed">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="pipeline-content"><h4>Request Submitted</h4><p>James Donovan</p><div class="pipeline-time">13 Feb 2026, 4:00 PM</div></div>
+          </div>
+          <div class="pipeline-step rejected">
+            <div class="pipeline-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+            <div class="pipeline-content"><h4>Agent Review — Declined</h4><p>Tom Blake: "Vehicle unavailable for requested time slot. Suggested rescheduling to 16 Feb."</p><div class="pipeline-time">13 Feb 2026, 5:20 PM</div></div>
+          </div>
+        </div>`;
+      footer.innerHTML = `
+        <button class="btn btn-outline" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary" onclick="closeModal(); switchTab('new-booking')">Rebook</button>`;
+    }
+
+    modalOverlay.classList.add('open');
+  }
+
+  function closeModal() { modalOverlay.classList.remove('open'); }
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+
+  /* ── Calendar ──────────────────────────────────── */
+  let currentMonth = 1; // Feb (0-indexed)
+  let currentYear = 2026;
+
+  const calendarEvents = {
+    '2026-02-14': [{ title: 'Williams — Boltons', type: 'confirmed' }],
+    '2026-02-15': [{ title: 'Thompson — Eaton Pl', type: 'pending' }],
+    '2026-02-17': [{ title: 'Mitchell — Kensington', type: 'confirmed' }],
+    '2026-02-18': [{ title: 'Chen — Belgrave Sq', type: 'pending' }],
+    '2026-02-19': [
+      { title: 'Roberts — Chester Tce', type: 'confirmed' },
+      { title: 'Wei — Hyde Park St', type: 'pending' }
+    ],
+    '2026-02-20': [{ title: 'Patel — Cadogan Pl', type: 'pending' }],
+    '2026-02-21': [{ title: 'Hamilton — Holland Pk', type: 'pending' }],
+    '2026-02-24': [{ title: 'Laurent — Phillimore', type: 'confirmed' }],
+    '2026-02-26': [{ title: 'Morton — Mayfair Pl', type: 'confirmed' }],
+  };
+
+  function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const label = document.getElementById('calendar-month-label');
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    label.textContent = `${months[currentMonth]} ${currentYear}`;
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
+    const startDay = firstDay === 0 ? 6 : firstDay - 1; // Monday start
+
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    let html = days.map(d => `<div class="calendar-day-label">${d}</div>`).join('');
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+    // Previous month padding
+    for (let i = startDay - 1; i >= 0; i--) {
+      html += `<div class="calendar-cell other-month"><div class="calendar-date">${daysInPrev - i}</div></div>`;
+    }
+
+    // Current month
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday = dateStr === todayStr;
+      const events = calendarEvents[dateStr] || [];
+      let eventsHtml = events.map(ev =>
+        `<div class="calendar-event ${ev.type}" title="${ev.title}">${ev.title}</div>`
+      ).join('');
+      html += `<div class="calendar-cell${isToday ? ' today' : ''}"><div class="calendar-date">${d}</div>${eventsHtml}</div>`;
+    }
+
+    // Next month padding
+    const totalCells = startDay + daysInMonth;
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for (let i = 1; i <= remaining; i++) {
+      html += `<div class="calendar-cell other-month"><div class="calendar-date">${i}</div></div>`;
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar();
+  }
+
+  // Init calendar if visible
+  renderCalendar();
+
+  /* ── Slot Grid ──────────────────────────────────── */
+  let slotWeekOffset = 0;
+
+  const vehicles = [
+    { name: 'Mercedes S-Class', plate: 'EM01' },
+    { name: 'Range Rover', plate: 'EM02' },
+    { name: 'BMW 7 Series', plate: 'EM03' },
+    { name: 'Rolls-Royce Ghost', plate: 'EM04' },
+  ];
+
+  // Keyed by "plate-YYYY-MM-DD"
+  const slotData = {
+    // Mercedes
+    'EM01-2026-02-16': [{ time: '10:00 AM', client: 'Mitchell', type: 'booked' }],
+    'EM01-2026-02-17': [{ time: '10:00 AM', client: 'Mitchell', type: 'booked' }],
+    'EM01-2026-02-18': [{ time: '2:00 PM', client: 'Patel', type: 'booked' }],
+    'EM01-2026-02-19': [{ time: '11:30 AM', client: 'Roberts', type: 'booked' }],
+    'EM01-2026-02-20': [{ time: '10:00 AM', client: 'Patel', type: 'booked' }],
+    'EM01-2026-02-21': [],
+    'EM01-2026-02-22': [],
+    // Range Rover
+    'EM02-2026-02-16': [],
+    'EM02-2026-02-17': [{ time: '1:00 PM', client: 'Hamilton', type: 'hold' }],
+    'EM02-2026-02-18': [],
+    'EM02-2026-02-19': [],
+    'EM02-2026-02-20': [],
+    'EM02-2026-02-21': [{ time: '1:00 PM', client: 'Hamilton', type: 'booked' }],
+    'EM02-2026-02-22': [],
+    // BMW
+    'EM03-2026-02-16': [],
+    'EM03-2026-02-17': [],
+    'EM03-2026-02-18': [],
+    'EM03-2026-02-19': [],
+    'EM03-2026-02-20': [{ time: 'All Day', client: 'Service', type: 'maintenance' }],
+    'EM03-2026-02-21': [{ time: 'All Day', client: 'Service', type: 'maintenance' }],
+    'EM03-2026-02-22': [],
+    // Rolls-Royce
+    'EM04-2026-02-16': [{ time: '9:00 AM', client: 'Chen VIP', type: 'booked' }],
+    'EM04-2026-02-17': [],
+    'EM04-2026-02-18': [{ time: '2:00 PM', client: 'Chen', type: 'booked' }],
+    'EM04-2026-02-19': [{ time: '3:30 PM', client: 'Wei', type: 'booked' }],
+    'EM04-2026-02-20': [{ time: '10:00 AM', client: 'VIP Hold', type: 'hold' }],
+    'EM04-2026-02-21': [],
+    'EM04-2026-02-22': [{ time: '11:00 AM', client: 'Laurent', type: 'booked' }],
+  };
+
+  function getWeekDates(offset) {
+    // Base Monday: 16 Feb 2026
+    const base = new Date(2026, 1, 16);
+    base.setDate(base.getDate() + offset * 7);
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(base);
+      d.setDate(d.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  }
+
+  function formatSlotDate(d) {
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return `${days[d.getDay()]} ${d.getDate()}`;
+  }
+
+  function toKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function renderSlotGrid() {
+    const dates = getWeekDates(slotWeekOffset);
+    const grid = document.getElementById('slot-grid');
+    const label = document.getElementById('slot-week-label');
+
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const first = dates[0];
+    const last = dates[6];
+    label.textContent = `Week of ${first.getDate()} – ${last.getDate()} ${months[last.getMonth()]} ${last.getFullYear()}`;
+
+    let html = '';
+
+    // Header row
+    html += '<div class="slot-grid-header corner">Vehicle</div>';
+    dates.forEach(d => {
+      html += `<div class="slot-grid-header">${formatSlotDate(d)}</div>`;
+    });
+
+    // Vehicle rows
+    vehicles.forEach(v => {
+      html += `<div class="slot-row-label"><strong>${v.name}</strong><span>${v.plate}</span></div>`;
+      dates.forEach(d => {
+        const key = `${v.plate}-${toKey(d)}`;
+        const slots = slotData[key];
+        let cellContent = '';
+
+        if (slots && slots.length > 0) {
+          slots.forEach(s => {
+            cellContent += `<div class="slot-chip ${s.type}" onclick="slotClick('${v.name}','${s.client}','${s.time}')">${s.time}<br>${s.client}</div>`;
+          });
+        } else if (slots && slots.length === 0) {
+          cellContent = `<div class="slot-chip available" onclick="slotClick('${v.name}','available','')">Open</div>`;
+        } else {
+          cellContent = `<div class="slot-chip available" onclick="slotClick('${v.name}','available','')">Open</div>`;
+        }
+
+        html += `<div class="slot-cell">${cellContent}</div>`;
+      });
+    });
+
+    grid.innerHTML = html;
+  }
+
+  function changeSlotWeek(delta) {
+    slotWeekOffset += delta;
+    renderSlotGrid();
+  }
+
+  function slotClick(vehicle, client, time) {
+    if (client === 'available') {
+      showToast(`${vehicle} — slot available. Create a booking to reserve.`);
+    } else {
+      showToast(`${vehicle} — ${client} at ${time}`);
+    }
+  }
+
+  // Render on fleet tab visit
+  const origSwitchTab = switchTab;
+  switchTab = function(tabId) {
+    origSwitchTab(tabId);
+    if (tabId === 'fleet') renderSlotGrid();
+  };
+
+  // Pre-render if someone lands on it
+  renderSlotGrid();
+</script>
+
+</body>
+</html>
